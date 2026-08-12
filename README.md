@@ -21,3 +21,11 @@ python memory_consolidation.py     # daily
 python captains_log.py             # daily (end of day)
 ```
 All three are self-healing guarded (restart on failure) + cron'd.
+
+## Components (added)
+- `verified_journal.py` — THE VERIFIED JOURNAL: publishes machine-proven
+  science (Lean4 theorems, real-data laws, experiments, exam scoreboard,
+  captain's log) to a public HTML journal daily (marquezhv.com/journal/).
+- `hypothesis_experiments.py` — the hypothesis + experiment engine:
+  tests physical/statistical hypotheses on real sensor data and logs
+  PASS/FAIL outcomes for the journal.
