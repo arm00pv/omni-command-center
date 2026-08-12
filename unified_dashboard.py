@@ -277,7 +277,7 @@ function render(s){
   g += card('Recent Events', ev);
   // 12. Captain's Log
   const cl = s.captains_log;
-  g += card('📖 Captain\'s Log — '+esc(cl?cl.day:'pending'),
+  g += card("📖 Captain's Log — "+esc(cl?cl.day:'pending'),
     cl ? '<pre style="color:var(--txt);max-height:220px">'+esc(cl.text)+'</pre>' :
          '<div class="row"><span class="k">daily narration runs at end of day</span></div>');
   document.getElementById('grid').innerHTML = g;
