@@ -111,9 +111,20 @@ def aleph_verified():
         return []
 
 
+def aleph_verified_count() -> int:
+    """The authoritative verified-truth count from ALEPH stats."""
+    try:
+        req = urllib.request.Request(ALEPH + "/memory/stats")
+        with urllib.request.urlopen(req, timeout=5) as r:
+            return json.loads(r.read().decode()).get("verified", 0)
+    except Exception:
+        return 0
+
+
 def gather() -> dict:
     """All verified material for this edition."""
     truths = aleph_verified()
+    verified_count = aleph_verified_count()
     laws = [l for l in load_jsonl("discovered_laws.jsonl", 20)
             if l.get("lean4_verified")]
     esp32 = load_jsonl("esp32_discovery.jsonl", 5)
@@ -125,6 +136,7 @@ def gather() -> dict:
     return {
         "day": time.strftime("%Y-%m-%d"),
         "truths": truths,
+        "verified_count": verified_count or len(truths),
         "laws": laws,
         "esp32": esp32,
         "auto": auto,
@@ -146,7 +158,7 @@ def render(d: dict, edition: int) -> str:
     h.append('<div style="text-align:center;margin-bottom:8px">'
              f'<div class="stat"><b>{e.get("cycle", "—")}</b><span>engine cycles</span></div>'
              f'<div class="stat"><b>{e.get("total_verified", "—")}</b><span>theorems verified</span></div>'
-             f'<div class="stat"><b>{len(d["truths"])}</b><span>immortal truths</span></div>'
+             f'<div class="stat"><b>{d["verified_count"]}</b><span>immortal truths</span></div>'
              f'<div class="stat"><b>{len(d["laws"])}</b><span>laws Lean4-verified</span></div>'
              f'<div class="stat"><b>{len(d["experiments"])}</b><span>experiments this run</span></div>'
              '</div>')
@@ -198,8 +210,9 @@ def render(d: dict, edition: int) -> str:
                         pass
     if readings:
         temps = [r["temp_c"] for r in readings]
+        snap = time.strftime("%H:%M")
         h.append(f'<div class="card"><span class="claim">{len(readings)} real temperature '
-                 f'measurements today from the ESP32-S3 sensor node</span>'
+                 f'measurements today from the ESP32-S3 sensor node (snapshot {snap})</span>'
                  f'<div class="meta">min {min(temps)}°C · max {max(temps)}°C · '
                  f'mean {sum(temps)/len(temps):.1f}°C · last {temps[-1]}°C</div></div>')
     else:
@@ -222,10 +235,17 @@ def render(d: dict, edition: int) -> str:
     if d["experiments"]:
         h.append('<table><tr><th>Hypothesis</th><th>Method</th><th>Outcome</th></tr>')
         for x in d["experiments"]:
-            out = x.get("outcome", "pending")
-            cls = "ok" if out == "PASS" else "bad"
-            h.append(f'<tr><td>{x.get("hypothesis", "")[:70]}</td>'
-                     f'<td>{x.get("method", "")[:40]}</td>'
+            # Old-format entries (discovery engine) are completed when
+            # lean4_verified; only truly-open entries are 'pending'
+            if x.get("outcome"):
+                out = x["outcome"]
+            elif x.get("lean4_verified"):
+                out = "PASS"
+            else:
+                out = "pending"
+            cls = "ok" if out == "PASS" else ("bad" if out == "FAIL" else "")
+            h.append(f'<tr><td>{x.get("hypothesis", x.get("name", ""))[:70]}</td>'
+                     f'<td>{x.get("method", x.get("law_family", ""))[:40]}</td>'
                      f'<td>{out}</td></tr>')
         h.append('</table>')
     else:
