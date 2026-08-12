@@ -56,21 +56,23 @@ def load_jsonl(name, limit=200):
 
 
 def esp32_day_stats():
-    """Real sensor summary for today."""
-    import glob
+    """Real sensor summary for TODAY only (per-day jsonl files)."""
+    today = time.strftime("%Y%m%d")
     temps, count = [], 0
-    for path in sorted(glob.glob(os.path.join(ARE_DIR, "real_data", "esp32_*.jsonl"))):
-        with open(path) as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    r = json.loads(line)
-                    temps.append(float(r["temp_c"]))
-                    count += 1
-                except Exception:
-                    pass
+    path = os.path.join(ARE_DIR, "real_data", f"esp32_{today}.jsonl")
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+                temps.append(float(r["temp_c"]))
+                count += 1
+            except Exception:
+                pass
     if not temps:
         return None
     return {

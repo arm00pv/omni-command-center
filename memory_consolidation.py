@@ -166,14 +166,23 @@ def consolidate_to_aleph(summaries: List[Dict], metrics: Dict) -> Dict:
             results["injected"] += 1
         else:
             results["errors"] += 1
-    # 2. Promoted headline metrics
-    for key, val in metrics.items():
+    # 2. Promoted headline metrics (wired in — the PROMOTED map drives this)
+    for name, (kind, field) in PROMOTED.items():
         if time.time() > budget:
             break
+        latest = next((s.get("latest") or {} for s in summaries
+                       if s["file"] == name), None)
+        if not latest:
+            continue
+        val = latest.get(field) or latest
+        try:
+            val_str = str(val)[:160]
+        except Exception:
+            val_str = ""
         r = _aleph("/memory/inject", {
-            "source": "memory_consolidation",
-            "relation": f"metric:{key}",
-            "target": str(val),
+            "source": f"promoted:{name}",
+            "relation": f"fact:{kind}:{field}",
+            "target": val_str,
             "domain": "memory_consolidation",
         })
         if r.get("ok"):
@@ -218,9 +227,12 @@ def run_cycle() -> Dict:
     print(f"    {json.dumps(aleph_stats)[:150]}")
     print("\n[5] BUILDING the digest...")
     digest = build_digest(summaries, metrics, aleph_stats)
-    with open(DIGEST_PATH, "w") as f:
-        json.dump(digest, f, indent=2, default=str)
-    print(f"    digest -> {DIGEST_PATH}")
+    try:
+        with open(DIGEST_PATH, "w") as f:
+            json.dump(digest, f, indent=2, default=str)
+        print(f"    digest -> {DIGEST_PATH}")
+    except Exception as e:
+        print(f"    digest write failed: {e}")
     # Log the cycle
     entry = {
         "time": time.time(),
@@ -229,8 +241,11 @@ def run_cycle() -> Dict:
         "injected": results["injected"],
         "metrics": metrics,
     }
-    with open(LOG_PATH, "a") as f:
-        f.write(json.dumps(entry) + "\n")
+    try:
+        with open(LOG_PATH, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception as e:
+        print(f"    log write failed: {e}")
     print("\n🎯 Memory consolidated — every agent now sees ONE digest")
     return entry
 

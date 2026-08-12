@@ -47,7 +47,7 @@ EVENT_FILES = [
     "esp32_discovery.jsonl", "self_healing.jsonl",
     "knowledge_decisions.jsonl", "research_swarm.jsonl",
     "memory_agent_runtime.jsonl", "math_paper.jsonl",
-    "prediction_validation.jsonl", "memory_consolidation.jsonl",
+    "prediction_validations.jsonl", "memory_consolidation.jsonl",
     "distributed_prover.jsonl", "trade_first_cycle.jsonl",
 ]
 
@@ -103,6 +103,17 @@ def esp32_live():
     return None
 
 
+def esp32_daemon_alive() -> bool:
+    """The ingest daemon is UP only if its pid is a live esp32_ingest proc."""
+    try:
+        with open("/tmp/esp32_ingest.pid") as f:
+            pid = int(f.read().strip())
+        with open(f"/proc/{pid}/cmdline") as f:
+            return "esp32_ingest" in f.read()
+    except Exception:
+        return False
+
+
 def prediction_hit_rate():
     """Honest hit rate from the prediction validation log."""
     recs = load_jsonl("prediction_validations.jsonl", 1000)
@@ -120,7 +131,7 @@ def gather_state() -> dict:
         "services": [
             {"port": p, "name": n, "up": port_up(p)} for p, n in SERVICES
         ],
-        "esp32_daemon": os.path.exists("/tmp/esp32_ingest.pid"),
+        "esp32_daemon": esp32_daemon_alive(),
         "aleph": load_json("memory_digest.json").get("aleph") or {},
         "engine": {
             "cycle": None, "verified": None, "attempted": None,
@@ -259,8 +270,9 @@ function render(s){
   // 9. Self-healing
   let h = '';
   for (const r of (s.self_healing||[]).slice(-3)) {
+    const dn = Array.isArray(r.down) ? r.down.length : 0;
     h += '<div class="row"><span class="k">'+esc(new Date(r.time*1000).toLocaleTimeString())+'</span>'+
-         '<span>'+(r.healthy||0)+'/'+(r.down?r.down.length:0)+'</span></div>';
+         '<span>'+(r.healthy||0)+'/'+dn+'</span></div>';
   }
   g += card('Self-Healing', h || '<div class="row"><span class="k">no records</span></div>');
   // 10. Memory digest
@@ -314,6 +326,21 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    # Singleton guard: refuse to run if another dashboard owns :8198
+    pidfile = "/tmp/unified_dashboard.pid"
+    try:
+        if os.path.exists(pidfile):
+            with open(pidfile) as f:
+                pid = int(f.read().strip())
+            with open(f"/proc/{pid}/cmdline") as f:
+                if "unified_dashboard" in f.read():
+                    print(f"[unified_dashboard] another instance (pid {pid}) — exit",
+                          flush=True)
+                    return
+    except Exception:
+        pass
+    with open(pidfile, "w") as f:
+        f.write(str(os.getpid()))
     print(f"[unified_dashboard] serving on :{PORT}", flush=True)
     while True:
         try:
