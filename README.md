@@ -29,3 +29,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
 - `hypothesis_experiments.py` — the hypothesis + experiment engine:
   tests physical/statistical hypotheses on real sensor data and logs
   PASS/FAIL outcomes for the journal.
+
+## Components (added)
+- `proof_decomposition.py` — THE PROOF DECOMPOSITION ENGINE: decomposes
+  theorems into sub-goal lanes, proves each lane (ring/omega/linarith/
+  rcases/positivity), composes + verifies with the REAL Lean4 kernel,
+  publishes to the Proof Lab (journal §7).

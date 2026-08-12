@@ -259,6 +259,24 @@ def render(d: dict, edition: int) -> str:
         h.append(f'<div class="card"><p class="quote">“{cap.get("text", "")}”</p>'
                  f'<div class="meta">{cap.get("day", "")}</div></div>')
 
+    # Proof Lab — today's composed + Lean4-verified theorems
+    h.append('<h2>§7 · The Proof Lab — Composed Theorems</h2>')
+    lab = load_jsonl("proof_lab.jsonl", 12)
+    if lab:
+        h.append('<table><tr><th>Theorem</th><th>Lanes</th><th>Path</th><th>Status</th></tr>')
+        for x in lab:
+            status = x.get("status", "")
+            cls = "ok" if status == "PROVEN" else ""
+            h.append(f'<tr><td>{x.get("statement", x.get("id", ""))[:55]}</td>'
+                     f'<td>{x.get("lanes", "")}</td>'
+                     f'<td>{x.get("path", "")}</td>'
+                     f'<td>{status}</td></tr>')
+        h.append('</table>')
+        h.append('<div class="meta">Every composition verified by the REAL Lean4 kernel ')
+        h.append('— the research team splits, proves lanes in parallel, and composes.</div>')
+    else:
+        h.append('<div class="card"><span class="claim">Proof Lab pending — the research team assembles next run.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 
