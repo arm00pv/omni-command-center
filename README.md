@@ -35,3 +35,14 @@ All three are self-healing guarded (restart on failure) + cron'd.
   theorems into sub-goal lanes, proves each lane (ring/omega/linarith/
   rcases/positivity), composes + verifies with the REAL Lean4 kernel,
   publishes to the Proof Lab (journal §7).
+
+## Components (added)
+- `compounding_proofs.py` — THE COMPOUNDING THEOREM LIBRARY: generates
+  harder theorems that reference the proven library (even of 3-sums via
+  even_add, etc.), proves + verifies with the REAL Lean4 kernel — the
+  library grows itself.
+- `formal_decisions.py` — THE FORMALLY-GROUNDED DECISION CORE: verifies
+  the policy invariant set (take-profit, stop-loss, cash non-negativity)
+  with Lean4, checks every action against it, grounds in verified memory,
+  and ledgers decisions (journal §8).
+- `journal_selfcheck.py` — the automated daily journal accuracy gate.

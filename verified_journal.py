@@ -155,11 +155,12 @@ def render(d: dict, edition: int) -> str:
 
     # Engine stats strip
     e = d.get("engine") or {}
+    distinct_laws = len({l.get("law") for l in d["laws"]})
     h.append('<div style="text-align:center;margin-bottom:8px">'
              f'<div class="stat"><b>{e.get("cycle", "—")}</b><span>engine cycles</span></div>'
              f'<div class="stat"><b>{e.get("total_verified", "—")}</b><span>theorems verified</span></div>'
              f'<div class="stat"><b>{d["verified_count"]}</b><span>immortal truths</span></div>'
-             f'<div class="stat"><b>{len(d["laws"])}</b><span>laws Lean4-verified</span></div>'
+             f'<div class="stat"><b>{distinct_laws}</b><span>distinct laws Lean4-proven</span></div>'
              f'<div class="stat"><b>{len(d["experiments"])}</b><span>experiments this run</span></div>'
              '</div>')
 
@@ -276,6 +277,22 @@ def render(d: dict, edition: int) -> str:
         h.append('— the research team splits, proves lanes in parallel, and composes.</div>')
     else:
         h.append('<div class="card"><span class="claim">Proof Lab pending — the research team assembles next run.</span></div>')
+
+    # Decision Ledger — the formally-grounded action record
+    h.append('<h2>§8 · The Decision Ledger — Formally-Grounded Actions</h2>')
+    ledger = load_jsonl("decision_ledger.jsonl", 8)
+    if ledger:
+        h.append('<table><tr><th>Action</th><th>Invariants</th><th>Grounded</th><th>Verdict</th></tr>')
+        for x in ledger[-8:]:
+            h.append(f'<tr><td>{x.get("action", "")}</td>'
+                     f'<td>{len(x.get("invariants_applied", []))}</td>'
+                     f'<td>{len(x.get("grounded_in", []))}</td>'
+                     f'<td>{x.get("verdict", "")}</td></tr>')
+        h.append('</table>')
+        h.append('<div class="meta">Every action bounded by Lean4-proven invariants '
+                 '(take-profit, stop-loss, cash non-negativity) + grounded in verified memory.</div>')
+    else:
+        h.append('<div class="card"><span class="claim">Decision ledger pending.</span></div>')
 
     h.append(EDITION_FOOTER)
     return "\n".join(h)
