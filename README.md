@@ -46,3 +46,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   with Lean4, checks every action against it, grounds in verified memory,
   and ledgers decisions (journal §8).
 - `journal_selfcheck.py` — the automated daily journal accuracy gate.
+
+## Components (added)
+- `fact_verifier.py` — THE FACT VERIFIER: extracts numeric claims from
+  LLM-generated text and verifies each against the ground-truth state —
+  publishing the institution's honesty score (journal §9). Contradictions
+  are injected into ALEPH so the memory learns its narrator's failures.

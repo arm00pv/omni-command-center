@@ -294,6 +294,27 @@ def render(d: dict, edition: int) -> str:
     else:
         h.append('<div class="card"><span class="claim">Decision ledger pending.</span></div>')
 
+    # The Honesty Report — the institution audits its own words
+    h.append('<h2>§9 · The Honesty Report — Audited Narration</h2>')
+    fc = load_jsonl("fact_check.jsonl", 1)
+    if fc:
+        f = fc[-1]
+        hon = f.get("honesty")
+        pct = f"{hon * 100:.1f}%" if hon is not None else "—"
+        h.append(f'<div class="card"><span class="claim">Narration honesty score: '
+                 f'{pct}</span>'
+                 f'<div class="meta">{f.get("verified", 0)} claims verified · '
+                 f'{f.get("contradicted", 0)} contradicted against the '
+                 f'ground-truth state — the system audits its own words.</div></div>')
+        for a in f.get("audits", [])[:2]:
+            for c in a.get("claims", [])[:3]:
+                if c.get("verdict") == "CONTRADICTED":
+                    h.append(f'<div class="card"><span class="claim">⚠ {c.get("context", "")[:60]}</span>'
+                             f'<span class="badge bad" style="color:#ff5d5d">CONTRADICTED</span>'
+                             f'<div class="meta">claim {c.get("value")} vs truth {c.get("truth")}</div></div>')
+    else:
+        h.append('<div class="card"><span class="claim">Honesty report pending.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 
