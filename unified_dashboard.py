@@ -164,6 +164,15 @@ def gather_state() -> dict:
     # Captain's log — the system's own narration
     logs = load_jsonl("captains_log.jsonl", 1)
     state["captains_log"] = logs[-1] if logs else None
+    # UI health — the daily vision-verified render check
+    ui = load_jsonl("ui_health.jsonl", 1)
+    state["ui_health"] = ui[-1] if ui else None
+    # Verified Journal — the daily public edition
+    try:
+        with open(os.path.join(STATE_DIR, "journal", "manifest.json")) as f:
+            state["verified_journal"] = json.load(f)
+    except Exception:
+        state["verified_journal"] = None
     return state
 
 
@@ -292,11 +301,73 @@ function render(s){
   g += card("📖 Captain's Log — "+esc(cl?cl.day:'pending'),
     cl ? '<pre style="color:var(--txt);max-height:220px">'+esc(cl.text)+'</pre>' :
          '<div class="row"><span class="k">daily narration runs at end of day</span></div>');
+  // 13. UI Health (vision-verified render check)
+  const uh = s.ui_health;
+  let uih = '';
+  if (uh && uh.results) {
+    for (const r of uh.results) {
+      uih += '<div class="row"><span class="k">'+esc(r.name)+'</span>'+
+             '<span class="pill '+(r.verdict==='RENDERS'?'ok':'bad')+'">'+esc(r.verdict)+'</span></div>';
+    }
+  } else uih = '<div class="row"><span class="k">daily check runs at 09:15</span></div>';
+  g += card('UI Health (vision)', uih);
+  // 14. Verified Journal
+  const vj = s.verified_journal;
+  g += card('📰 Verified Journal', vj ?
+    '<div class="row"><span class="k">edition</span><span class="big">#'+esc(vj.edition)+'</span></div>'+
+    '<div class="row"><span class="k">day</span><span>'+esc(vj.day)+'</span></div>'+
+    '<div class="row"><span class="k">public</span><span><a href="https://marquezhv.com/journal/" target="_blank" style="color:var(--acc)">marquezhv.com/journal/ ↗</a></span></div>' :
+    '<div class="row"><span class="k">publishes daily at 09:00</span></div>');
   document.getElementById('grid').innerHTML = g;
   document.getElementById('stamp').textContent = 'updated ' + new Date(s.time*1000).toLocaleTimeString();
 }
 setInterval(refresh, 10000);
 refresh();
+</script>
+</body>
+</html>
+"""
+
+
+KNOWLEDGE_HTML = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>📚 The Verified Knowledge Portal</title>
+<style>
+:root { --bg:#0b0e14; --card:#12161f; --line:#1f2633; --txt:#d7e0ee;
+        --dim:#7a8699; --ok:#3ddc84; --acc:#5b8cff; --gold:#d4af37; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--txt); font-family:'Segoe UI',system-ui,sans-serif; padding:24px; max-width:900px; margin:0 auto; }
+h1 { color:var(--gold); font-size:26px; margin-bottom:4px; }
+.sub { color:var(--dim); font-size:13px; margin-bottom:20px; }
+input { width:100%; padding:12px 16px; font-size:15px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--txt); margin-bottom:18px; }
+.result { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 16px; margin-bottom:10px; }
+.result .text { font-size:14px; }
+.result .path { color:var(--acc); font-size:12px; margin-top:4px; }
+.result .domain { color:var(--dim); font-size:11px; }
+#count { color:var(--dim); font-size:12px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<h1>📚 The Verified Knowledge Portal</h1>
+<div class="sub">Every entry formally verified — Lean4 kernel · knowledge gate · real data · distributed nodes</div>
+<input id="q" placeholder="Search verified knowledge… (e.g. even, commut, temperature, trade)" oninput="go()">
+<div id="count"></div>
+<div id="results"></div>
+<script>
+async function go() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) { document.getElementById('results').innerHTML = ''; document.getElementById('count').textContent = ''; return; }
+  const r = await fetch('search?q=' + encodeURIComponent(q));
+  const d = await r.json();
+  document.getElementById('count').textContent = d.count + ' verified result(s)';
+  document.getElementById('results').innerHTML = d.results.map(x =>
+    '<div class="result"><div class="text">' + x.text + '</div>' +
+    '<div class="path">✓ ' + x.path + '</div>' +
+    '<div class="domain">' + x.domain + '</div></div>').join('');
+}
 </script>
 </body>
 </html>
@@ -313,6 +384,37 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path.startswith("/knowledge/search"):
+            # the verified knowledge search API
+            from urllib.parse import urlparse, parse_qs
+            qs = parse_qs(urlparse(self.path).query)
+            q = (qs.get("q") or [""])[0]
+            domain = (qs.get("domain") or [""])[0]
+            try:
+                with open(os.path.join(STATE_DIR, "knowledge_index.json")) as f:
+                    idx = json.load(f).get("entries", [])
+            except Exception:
+                idx = []
+            ql = q.lower()
+            results = [e for e in idx
+                       if (not domain or e.get("domain") == domain)
+                       and (ql in e.get("text", "").lower()
+                            or ql in e.get("path", "").lower())][:20]
+            body = json.dumps({"query": q, "count": len(results),
+                               "results": results}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path.startswith("/knowledge"):
+            body = KNOWLEDGE_HTML.encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)

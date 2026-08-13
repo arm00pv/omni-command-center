@@ -71,3 +71,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   research campaigns dispatched to the RPi node (tailnet ollama) + the
   throne, every answer verified on the throne (Lean4 kernel for math,
   cross-model for facts). Journal §11.
+
+## Components (added)
+- `verified_knowledge.py` — THE VERIFIED KNOWLEDGE PORTAL: a public,
+  searchable index of every verified entry (ALEPH truths, Proof Lab,
+  Knowledge Gate, Distributed Network, Decision Ledger) with its
+  verification path. Served at marquezhv.com/knowledge/.
