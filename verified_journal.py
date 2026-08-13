@@ -177,9 +177,14 @@ def render(d: dict, edition: int) -> str:
         h.append('<div class="card"><span class="claim">(truth layer unreachable this edition — '
                  'corpus preserved in state)</span></div>')
 
-    # Laws from real data
+    # Laws from real data (deduplicated by law+params)
     h.append('<h2>§2 · Laws Discovered from Real Data</h2>')
+    seen_laws = set()
     for law in d["laws"]:
+        key = (law.get("law"), str(law.get("params")))
+        if key in seen_laws:
+            continue
+        seen_laws.add(key)
         h.append(f'<div class="card"><span class="claim">family: {law.get("law")} '
                  f'(params {law.get("params")})</span><span class="badge gold">LEAN4 PROVEN</span>'
                  f'<div class="meta">test RMSE {law.get("test_rmse")}</div></div>')
@@ -297,6 +302,7 @@ def render(d: dict, edition: int) -> str:
     # The Honesty Report — the institution audits its own words
     h.append('<h2>§9 · The Honesty Report — Audited Narration</h2>')
     fc = load_jsonl("fact_check.jsonl", 1)
+    trend = load_jsonl("honesty_trend.jsonl", 5)
     if fc:
         f = fc[-1]
         hon = f.get("honesty")
@@ -312,6 +318,16 @@ def render(d: dict, edition: int) -> str:
                     h.append(f'<div class="card"><span class="claim">⚠ {c.get("context", "")[:60]}</span>'
                              f'<span class="badge bad" style="color:#ff5d5d">CONTRADICTED</span>'
                              f'<div class="meta">claim {c.get("value")} vs truth {c.get("truth")}</div></div>')
+    # the honesty TREND — the grounded narrator's improvement
+    if trend:
+        h.append('<div class="card"><span class="claim">Honesty trend — the '
+                 'grounded narrator learns to tell the truth</span>')
+        h.append('<div class="meta">')
+        for t in trend:
+            th = t.get("honesty")
+            if th is not None:
+                h.append(f'{t.get("mode", "?")} {th * 100:.0f}% · ')
+        h.append('</div></div>')
     else:
         h.append('<div class="card"><span class="claim">Honesty report pending.</span></div>')
 

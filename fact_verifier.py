@@ -127,17 +127,30 @@ TOLERANCE = 0.05  # ±5%
 
 
 def extract_claims(text: str) -> list:
-    """Pull (number, anchor-keyword) claims from text."""
+    """Pull (number, anchor-keyword) claims from text.
+    The anchor is the NEAREST keyword to the number (before or after),
+    not any keyword in a fixed window — this fixes mis-anchoring like
+    '1725 theorems' being claimed as 'cycle' because 'cycle' appeared
+    earlier in the sentence."""
     claims = []
-    # tokenize with context: "N words" before each number
-    for m in re.finditer(r"\d+(?:\.\d+)?(?:k)?", text):
+    lower = text.lower()
+    # normalize thousands separators: "10,000" -> "10000"
+    text_norm = re.sub(r"(?<=\d),(?=\d{3})", "", text)
+    lower = text_norm.lower()
+    for m in re.finditer(r"\d+(?:\.\d+)?(?:k)?", text_norm):
         val = float(m.group().rstrip("k")) * (1000 if m.group().endswith("k") else 1)
-        ctx = text[max(0, m.start() - 60):m.start()].lower()
+        num_pos = m.start()
+        best, best_dist = None, 10 ** 9
         for kws, key in KEYWORDS:
-            if any(k in ctx for k in kws):
-                claims.append({"value": val, "anchor": key,
-                               "context": ctx[-40:].strip()})
-                break
+            for kw in kws:
+                for found in re.finditer(re.escape(kw), lower):
+                    dist = abs(found.start() - num_pos)
+                    if dist < best_dist:
+                        best_dist, best = dist, key
+        if best is not None:
+            ctx = text[max(0, num_pos - 40):num_pos].strip()
+            claims.append({"value": val, "anchor": best,
+                           "context": ctx[-30:]})
     return claims
 
 

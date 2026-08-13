@@ -52,3 +52,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   LLM-generated text and verifies each against the ground-truth state —
   publishing the institution's honesty score (journal §9). Contradictions
   are injected into ALEPH so the memory learns its narrator's failures.
+
+## Components (added)
+- `grounded_narration.py` — THE GROUNDED NARRATOR: generates the captain's
+  log from a verified fact sheet (use ONLY these numbers) — honesty rose
+  from 0.5 (ungrounded) to 0.80 (grounded). The trend is published in
+  journal §9.
