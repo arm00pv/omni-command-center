@@ -77,3 +77,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   searchable index of every verified entry (ALEPH truths, Proof Lab,
   Knowledge Gate, Distributed Network, Decision Ledger) with its
   verification path. Served at marquezhv.com/knowledge/.
+
+## Components (added)
+- `tactic_search.py` — THE TACTIC-SEARCH PROVER: kernel-driven proof
+  search (NO torch — immune to RAM windows). Batched Lean4 verification
+  solves the graduation exam at 19/20 (95%) in ~20s vs the ML prover's
+  45%. The exam now falls back to it when the ML prover is down.

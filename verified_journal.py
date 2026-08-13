@@ -161,7 +161,7 @@ def render(d: dict, edition: int) -> str:
              f'<div class="stat"><b>{e.get("total_verified", "—")}</b><span>theorems verified</span></div>'
              f'<div class="stat"><b>{d["verified_count"]}</b><span>immortal truths</span></div>'
              f'<div class="stat"><b>{distinct_laws}</b><span>distinct laws Lean4-proven</span></div>'
-             f'<div class="stat"><b>{len(d["experiments"])}</b><span>experiments this run</span></div>'
+             f'<div class="stat"><b>{len(d["experiments"])}</b><span>experiments logged</span></div>'
              '</div>')
 
     # Verified theorems
@@ -323,10 +323,12 @@ def render(d: dict, edition: int) -> str:
         h.append('<div class="card"><span class="claim">Honesty trend — the '
                  'grounded narrator learns to tell the truth</span>')
         h.append('<div class="meta">')
+        pts = []
         for t in trend:
             th = t.get("honesty")
             if th is not None:
-                h.append(f'{t.get("mode", "?")} {th * 100:.0f}% · ')
+                pts.append(f'{t.get("mode", "?")} {th * 100:.0f}%')
+        h.append(" → ".join(pts))
         h.append('</div></div>')
     else:
         h.append('<div class="card"><span class="claim">Honesty report pending.</span></div>')
@@ -372,6 +374,26 @@ def render(d: dict, edition: int) -> str:
         h.append('</table>')
     else:
         h.append('<div class="card"><span class="claim">Distributed network pending.</span></div>')
+
+    # The Search Prover — the kernel-driven prover that never sleeps
+    h.append('<h2>§12 · The Tactic-Search Prover — Kernel-Driven Proof Search</h2>')
+    tex = load_jsonl("tactic_exam.jsonl", 1)
+    if tex:
+        t = tex[-1]
+        pct = t.get("overall", 0) * 100
+        h.append(f'<div class="card"><span class="claim">Search-prover exam: '
+                 f'{pct:.1f}% ({t.get("solved")}/{t.get("total")}) — NO torch, '
+                 f'immune to RAM windows</span>'
+                 f'<div class="meta">tiers {t.get("tier1", 0)*100:.0f} / '
+                 f'{t.get("tier2", 0)*100:.0f} / {t.get("tier3", 0)*100:.0f} · '
+                 f'every candidate verified by the exact Lean4 kernel</div></div>')
+        for r in t.get("results", [])[:6]:
+            if r.get("status") == "PROVEN":
+                h.append(f'<div class="card"><span class="claim">{r.get("name")}</span>'
+                         f'<span class="badge ok">PROVEN</span>'
+                         f'<div class="meta">tactics: {r.get("tactics")}</div></div>')
+    else:
+        h.append('<div class="card"><span class="claim">Search prover pending.</span></div>')
 
     h.append(EDITION_FOOTER)
     return "\n".join(h)
