@@ -331,6 +331,29 @@ def render(d: dict, edition: int) -> str:
     else:
         h.append('<div class="card"><span class="claim">Honesty report pending.</span></div>')
 
+    # The Knowledge Gate — the institution verifies the world
+    h.append('<h2>§10 · The Knowledge Gate — Verified Acquisition</h2>')
+    gate = load_jsonl("knowledge_gate.jsonl", 20)
+    if gate:
+        verified = sum(1 for g in gate if g.get("verdict") == "VERIFIED")
+        rejected = sum(1 for g in gate if g.get("verdict") == "REJECTED")
+        total = len(gate)
+        h.append(f'<div class="card"><span class="claim">Admission rate: '
+                 f'{verified}/{total} claims verified ({verified/total*100:.0f}%) '
+                 f'· {rejected} rejected</span>'
+                 f'<div class="meta">GATE 1 math → the REAL Lean4 kernel · '
+                 f'GATE 2 factual → Brave Search + multi-model · '
+                 f'GATE 3 empirical → real sensor data</div></div>')
+        h.append('<table><tr><th>Claim</th><th>Gate</th><th>Verdict</th></tr>')
+        for g in gate[-10:]:
+            cls = "ok" if g.get("verdict") == "VERIFIED" else ""
+            h.append(f'<tr><td>{g.get("claim", "")[:50]}</td>'
+                     f'<td>{g.get("gate", "")}</td>'
+                     f'<td>{g.get("verdict", "")}</td></tr>')
+        h.append('</table>')
+    else:
+        h.append('<div class="card"><span class="claim">Knowledge gate pending.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 

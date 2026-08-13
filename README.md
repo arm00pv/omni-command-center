@@ -58,3 +58,10 @@ All three are self-healing guarded (restart on failure) + cron'd.
   log from a verified fact sheet (use ONLY these numbers) — honesty rose
   from 0.5 (ungrounded) to 0.80 (grounded). The trend is published in
   journal §9.
+
+## Components (added)
+- `knowledge_acquisition.py` — THE VERIFIED KNOWLEDGE ACQUISITION LOOP:
+  candidate claims pass a formal gate (GATE 1 math → Lean4 kernel,
+  GATE 2 factual → Brave Search + multi-model, GATE 3 empirical → real
+  sensor data). Verified claims become immortal truths; false claims are
+  rejected. Journal §10 The Knowledge Gate.
