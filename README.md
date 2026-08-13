@@ -83,3 +83,10 @@ All three are self-healing guarded (restart on failure) + cron'd.
   search (NO torch — immune to RAM windows). Batched Lean4 verification
   solves the graduation exam at 19/20 (95%) in ~20s vs the ML prover's
   45%. The exam now falls back to it when the ML prover is down.
+
+## Components (added)
+- `verified_answers.py` — THE VERIFIED ANSWER ENGINE: ask the institution
+  anything — math claims get kernel-verified proofs, factual questions hit
+  the verified index, empirical questions read the real sensors, unknown
+  questions get the honest "unverifiable" answer. Served at
+  marquezhv.com/knowledge/ (Ask box).

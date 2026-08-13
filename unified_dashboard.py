@@ -353,9 +353,27 @@ input { width:100%; padding:12px 16px; font-size:15px; border-radius:8px; border
 <body>
 <h1>📚 The Verified Knowledge Portal</h1>
 <div class="sub">Every entry formally verified — Lean4 kernel · knowledge gate · real data · distributed nodes</div>
+<h2 style="color:#5b8cff;font-size:15px;margin:6px 0">💬 Ask the institution (answers carry proof)</h2>
+<input id="aq" placeholder="Ask… (e.g. is addition commutative, what is the ESP32 temperature, is 2 + 2 = 4)" onkeydown="if(event.key==='Enter')ask()">
+<div id="aanswer"></div>
+<h2 style="color:#5b8cff;font-size:15px;margin:14px 0 6px">🔎 Search the verified index</h2>
 <input id="q" placeholder="Search verified knowledge… (e.g. even, commut, temperature, trade)" oninput="go()">
 <div id="count"></div>
 <div id="results"></div>
+<script>
+async function ask() {
+  const q = document.getElementById('aq').value.trim();
+  if (!q) return;
+  document.getElementById('aanswer').innerHTML = '<div class="result"><div class="text">verifying…</div></div>';
+  const r = await fetch('ask?q=' + encodeURIComponent(q));
+  const d = await r.json();
+  const badge = d.verdict === 'verified' ? '✅' : (d.verdict === 'rejected' ? '❌' : '⚠️');
+  document.getElementById('aanswer').innerHTML =
+    '<div class="result"><div class="text">' + badge + ' ' + d.answer + '</div>' +
+    '<div class="path">✓ ' + d.verification + '</div>' +
+    '<div class="domain">route: ' + d.route + '</div></div>';
+}
+</script>
 <script>
 async function go() {
   const q = document.getElementById('q').value.trim();
@@ -381,6 +399,27 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path.startswith("/api/state"):
             body = json.dumps(gather_state()).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        elif self.path.startswith("/ask/search") or self.path.startswith("/ask"):
+            # the VERIFIED ANSWER ENGINE
+            from urllib.parse import urlparse, parse_qs
+            qs = parse_qs(urlparse(self.path).query)
+            q = (qs.get("q") or [""])[0]
+            import sys as _sys
+            _sys.path.insert(0, ARE_DIR)
+            from verified_answers import answer
+            if q.strip():
+                result = answer(q)
+            else:
+                result = {"answer": "Ask the institution a question — it answers only with verification.",
+                          "verification": "—", "verdict": "info",
+                          "route": "info"}
+            body = json.dumps(result).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
