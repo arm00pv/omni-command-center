@@ -65,3 +65,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   GATE 2 factual → Brave Search + multi-model, GATE 3 empirical → real
   sensor data). Verified claims become immortal truths; false claims are
   rejected. Journal §10 The Knowledge Gate.
+
+## Components (added)
+- `distributed_research.py` — THE DISTRIBUTED VERIFIED RESEARCH NETWORK:
+  research campaigns dispatched to the RPi node (tailnet ollama) + the
+  throne, every answer verified on the throne (Lean4 kernel for math,
+  cross-model for facts). Journal §11.

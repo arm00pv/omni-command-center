@@ -354,6 +354,25 @@ def render(d: dict, edition: int) -> str:
     else:
         h.append('<div class="card"><span class="claim">Knowledge gate pending.</span></div>')
 
+    # The Distributed Network — node contributions, verified on the throne
+    h.append('<h2>§11 · The Distributed Network — Verified Node Research</h2>')
+    net = load_jsonl("distributed_network.jsonl", 10)
+    if net:
+        verified = sum(1 for n in net if (n.get("verify") or {}).get("verdict") == "VERIFIED")
+        h.append(f'<div class="card"><span class="claim">{verified}/{len(net)} node '
+                 f'contributions verified on the throne</span>'
+                 f'<div class="meta">lanes: throne-local + RPi node (tailnet) — '
+                 f'math verified by the Lean4 kernel, facts by cross-model agreement</div></div>')
+        h.append('<table><tr><th>Campaign</th><th>Node answer</th><th>Verdict</th></tr>')
+        for n in net[-6:]:
+            v = (n.get("verify") or {})
+            h.append(f'<tr><td>{n.get("campaign", "")[:35]}</td>'
+                     f'<td>{(n.get("rpi_node") or "")[:45]}</td>'
+                     f'<td>{v.get("verdict", "")}</td></tr>')
+        h.append('</table>')
+    else:
+        h.append('<div class="card"><span class="claim">Distributed network pending.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 
