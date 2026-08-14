@@ -108,3 +108,10 @@ All three are self-healing guarded (restart on failure) + cron'd.
   success from real kernel outcomes (ring = the exam workhorse, 13 wins)
   and produces the priority map the search prover consumes — the proving
   strategy learns from its own results. Journal §14.
+
+## Components (added)
+- `institution_report.py` — THE STATE-OF-THE-INSTITUTION REPORT: the
+  institution's public annual report — learning curves (exam 40%→75%,
+  honesty 31%→80%), the proving stack, the verification layer, the
+  physical layer, the open agenda. Served at marquezhv.com/report/.
+  Weekly cron.
