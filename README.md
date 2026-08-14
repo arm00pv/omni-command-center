@@ -90,3 +90,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   the verified index, empirical questions read the real sensors, unknown
   questions get the honest "unverifiable" answer. Served at
   marquezhv.com/knowledge/ (Ask box).
+
+## Components (added)
+- `research_planner.py` — THE SELF-DIRECTED RESEARCH PLANNER: analyzes the
+  system's gaps (exam failures, unverified claims), plans the next target
+  set, executes it with the kernel (8/14 gap closure — the Nat-subtraction
+  family filled), and publishes the agenda (journal §13).

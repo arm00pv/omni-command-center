@@ -395,6 +395,27 @@ def render(d: dict, edition: int) -> str:
     else:
         h.append('<div class="card"><span class="claim">Search prover pending.</span></div>')
 
+    # The Research Agenda — the self-directed planner
+    h.append('<h2>§13 · The Research Agenda — Self-Directed Planning</h2>')
+    plan = load_jsonl("research_plan.jsonl", 1)
+    if plan:
+        p = plan[-1]
+        pct = p.get("gap_closure", 0) * 100
+        h.append(f'<div class="card"><span class="claim">Gap closure: '
+                 f'{pct:.0f}% ({p.get("closed")}/{p.get("planned")} targets '
+                 f'proven from the agenda)</span>'
+                 f'<div class="meta">the PI analyzed {len(p.get("gaps", {}).get("exam_failures", []))} '
+                 f'exam failures + {p.get("gaps", {}).get("unverified_claims", 0)} unverified claims '
+                 f'and planned {p.get("planned", 0)} next targets</div></div>')
+        h.append('<table><tr><th>Family</th><th>Target</th><th>Status</th></tr>')
+        for r in p.get("results", [])[:8]:
+            h.append(f'<tr><td>{r.get("family", "")}</td>'
+                     f'<td>{r.get("statement", "")[:40]}</td>'
+                     f'<td>{r.get("status", "")}</td></tr>')
+        h.append('</table>')
+    else:
+        h.append('<div class="card"><span class="claim">Research agenda pending.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 
