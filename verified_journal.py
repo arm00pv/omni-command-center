@@ -315,7 +315,12 @@ def render(d: dict, edition: int) -> str:
         for a in f.get("audits", [])[:2]:
             for c in a.get("claims", [])[:3]:
                 if c.get("verdict") == "CONTRADICTED":
-                    h.append(f'<div class="card"><span class="claim">⚠ {c.get("context", "")[:60]}</span>'
+                    ctx = c.get("context", "")
+                    # clean markdown + truncate at a word boundary
+                    ctx = ctx.replace("**", "").replace("`", "")
+                    if len(ctx) > 50:
+                        ctx = ctx[:50].rsplit(" ", 1)[0] + "…"
+                    h.append(f'<div class="card"><span class="claim">⚠ {ctx}</span>'
                              f'<span class="badge bad" style="color:#ff5d5d">CONTRADICTED</span>'
                              f'<div class="meta">claim {c.get("value")} vs truth {c.get("truth")}</div></div>')
     # the honesty TREND — the grounded narrator's improvement
