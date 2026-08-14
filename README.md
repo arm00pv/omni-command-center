@@ -96,3 +96,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   system's gaps (exam failures, unverified claims), plans the next target
   set, executes it with the kernel (8/14 gap closure — the Nat-subtraction
   family filled), and publishes the agenda (journal §13).
+
+## Upgrade
+- `verified_answers.py` — WEB-GROUNDED answers: when the local verified
+  index has no match, the engine searches Brave and answers with a real
+  citation, honestly labeled "web-sourced — NOT formally verified"
+  ("what is the capital of France" → "Paris …" via Wikipedia).

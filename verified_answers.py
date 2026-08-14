@@ -148,7 +148,8 @@ def answer_math(q: str) -> dict:
 
 
 def answer_factual(q: str) -> dict:
-    """Search the verified knowledge index."""
+    """Search the verified knowledge index; fall back to Brave web
+    evidence (with citation) when the index has no match."""
     try:
         with open(os.path.join(STATE, "knowledge_index.json")) as f:
             entries = json.load(f).get("entries", [])
@@ -161,7 +162,7 @@ def answer_factual(q: str) -> dict:
     for e in entries:
         text = e.get("text", "").lower()
         score = sum(1 for w in words if w in text)
-        if score > 0:
+        if score >= 2:  # require meaningful overlap, not single words
             best.append((score, e))
     best.sort(key=lambda x: -x[0])
     if best:
@@ -170,6 +171,23 @@ def answer_factual(q: str) -> dict:
                 "verification": e.get("path", "verified index"),
                 "domain": e.get("domain", ""),
                 "matches": len(best), "verdict": "verified"}
+    # Brave web fallback — answer with a real citation
+    try:
+        sys.path.insert(0, "/home/zixen15/brains")
+        from brave_search import get_brave
+        r = get_brave().search(q, count=3)
+        if r.get("success") and r.get("results"):
+            top = r["results"][0]
+            snippet = (top.get("snippet") or top.get("title") or "")
+            clean = re.sub(r"<[^>]+>", "", snippet)[:200]
+            return {"answer": clean or top.get("title", ""),
+                    "verification": f"Brave web evidence — {top.get('url', '')}",
+                    "source": "web",
+                    "matches": len(r["results"]),
+                    "verdict": "web-sourced",
+                    "note": "cited from the web — NOT formally verified by the kernel"}
+    except Exception:
+        pass
     return {"answer": "UNVERIFIABLE — no verified entry matches this question.",
             "verification": "verified knowledge index (no match)",
             "verdict": "unverifiable"}
