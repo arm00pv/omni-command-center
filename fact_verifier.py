@@ -148,9 +148,15 @@ def extract_claims(text: str) -> list:
                     if dist < best_dist:
                         best_dist, best = dist, key
         if best is not None:
-            ctx = text[max(0, num_pos - 40):num_pos].strip()
+            # context starting at a WORD boundary (no mid-word fragments)
+            start = max(0, num_pos - 40)
+            ctx = text[start:num_pos]
+            if start > 0 and not ctx[0].isspace():
+                sp = ctx.find(" ")
+                if sp >= 0:
+                    ctx = ctx[sp + 1:]
             claims.append({"value": val, "anchor": best,
-                           "context": ctx[-30:]})
+                           "context": ctx[-40:].strip()})
     return claims
 
 
