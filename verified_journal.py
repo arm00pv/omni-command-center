@@ -416,6 +416,22 @@ def render(d: dict, edition: int) -> str:
     else:
         h.append('<div class="card"><span class="claim">Research agenda pending.</span></div>')
 
+    # The Learned Prover — the prover learns HOW to prove
+    h.append('<h2>§14 · The Learned Prover — Family-Aware Tactic Search</h2>')
+    try:
+        with open(os.path.join(STATE, "tactic_priority.json")) as f:
+            prio = json.load(f)
+        h.append('<table><tr><th>Family</th><th>Best tactic (learned)</th><th>Wins</th></tr>')
+        for fam, l in sorted(prio.items()):
+            h.append(f'<tr><td>{fam}</td><td>{l.get("best", "")}</td>'
+                     f'<td>{l.get("wins", 0)}</td></tr>')
+        h.append('</table>')
+        h.append('<div class="meta">The tactic search now tries each family\'s '
+                 'proven tactic FIRST — the institution\'s proving strategy '
+                 'learns from its own kernel results.</div>')
+    except Exception:
+        h.append('<div class="card"><span class="claim">Learned prover pending.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 

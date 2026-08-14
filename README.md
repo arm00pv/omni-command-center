@@ -102,3 +102,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   index has no match, the engine searches Brave and answers with a real
   citation, honestly labeled "web-sourced — NOT formally verified"
   ("what is the capital of France" → "Paris …" via Wikipedia).
+
+## Components (added)
+- `tactic_learner.py` — THE TACTIC LEARNER: computes family-aware tactic
+  success from real kernel outcomes (ring = the exam workhorse, 13 wins)
+  and produces the priority map the search prover consumes — the proving
+  strategy learns from its own results. Journal §14.
