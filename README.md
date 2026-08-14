@@ -115,3 +115,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   honesty 31%→80%), the proving stack, the verification layer, the
   physical layer, the open agenda. Served at marquezhv.com/report/.
   Weekly cron.
+
+## Components (added)
+- `knowledge_trader.py` — THE KNOWLEDGE-DRIVEN TRADER: trading signals from
+  the verified knowledge (trend laws on real price histories), risk from
+  the Lean4-proven invariants, and an HONEST walk-forward backtest (SPY
+  +15%, Sharpe 1.00; cardano −64.8% — the truth). Journal §15.

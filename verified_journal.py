@@ -432,6 +432,26 @@ def render(d: dict, edition: int) -> str:
     except Exception:
         h.append('<div class="card"><span class="claim">Learned prover pending.</span></div>')
 
+    # The Knowledge-Driven Trader — verified intelligence in action
+    h.append('<h2>§15 · The Knowledge-Driven Trader — Honest Backtest</h2>')
+    kt = load_jsonl("knowledge_trader.jsonl", 1)
+    if kt:
+        t = kt[-1]
+        bts = t.get("backtests", [])
+        good = sum(1 for b in bts if b.get("total_return", 0) > 0)
+        h.append(f'<div class="card"><span class="claim">{good}/{len(bts)} assets '                 f'positive strategy returns — honest walk-forward backtest</span>'
+                 f'<div class="meta">signals from the verified laws · risk bounded by '                 f'the Lean4-proven invariants (take-profit +{t.get("take_profit", .15)*100:.0f}%, '                 f'stop-loss −{t.get("stop_loss", .05)*100:.0f}%)</div></div>')
+        h.append('<table><tr><th>Asset</th><th>Return</th><th>Win</th><th>Sharpe</th><th>DD</th></tr>')
+        for b in bts[:7]:
+            h.append(f'<tr><td>{b.get("symbol", "")}</td>'
+                     f'<td>{b.get("total_return", 0)*100:+.1f}%</td>'
+                     f'<td>{b.get("win_rate", 0)*100:.0f}%</td>'
+                     f'<td>{b.get("sharpe", 0):.2f}</td>'
+                     f'<td>{b.get("max_drawdown", 0)*100:.0f}%</td></tr>')
+        h.append('</table>')
+    else:
+        h.append('<div class="card"><span class="claim">Trader pending.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 
