@@ -121,3 +121,9 @@ All three are self-healing guarded (restart on failure) + cron'd.
   the verified knowledge (trend laws on real price histories), risk from
   the Lean4-proven invariants, and an HONEST walk-forward backtest (SPY
   +15%, Sharpe 1.00; cardano −64.8% — the truth). Journal §15.
+
+## Components (added)
+- `conjecture_mine.py` — THE CONJECTURE MINE: discovers NOVEL theorems by
+  structurally generalizing the verified corpus (Nat→ℝ, 2→3 variables,
+  add→mul swaps) — 8 NEW truths struck, 6 rejected by the kernel
+  (including the false conjectures correctly refuted). Journal §16.

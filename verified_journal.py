@@ -457,6 +457,21 @@ def render(d: dict, edition: int) -> str:
     else:
         h.append('<div class="card"><span class="claim">Trader pending.</span></div>')
 
+    # The Conjecture Mine — novel-theorem discovery
+    h.append('<h2>§16 · The Conjecture Mine — Novel-Theorem Discovery</h2>')
+    mine = load_jsonl("conjecture_mine.jsonl", 1)
+    if mine:
+        m = mine[-1]
+        h.append(f'<div class="card"><span class="claim">The mine struck '                 f'<b>{m.get("new_truths", 0)} NEW truths</b> '                 f'({m.get("rejected", 0)} rejected by the kernel) '                 f'— novelty rate {m.get("new_truths", 0)}/{m.get("mined", 0)}</span>'
+                 f'<div class="meta">structural generalizations of the verified '                 f'corpus, each tested by the exact Lean4 kernel</div></div>')
+        h.append('<table><tr><th>New truth</th><th>Statement</th></tr>')
+        for p in m.get("proven", [])[:6]:
+            h.append(f'<tr><td>{p.get("name", "")}</td>'
+                     f'<td>{p.get("statement", "")[:45]}</td></tr>')
+        h.append('</table>')
+    else:
+        h.append('<div class="card"><span class="claim">Conjecture mine pending.</span></div>')
+
     h.append(EDITION_FOOTER)
     return "\n".join(h)
 
